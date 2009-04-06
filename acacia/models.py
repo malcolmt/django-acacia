@@ -64,10 +64,6 @@ class AbstractTopic(treebeard_mods.MP_Node):
             self._set_full_name()
         return self.full_name
 
-    @models.permalink
-    def get_absolute_url(self):
-        return ("topic", [unicode(self)])
-
     def _set_full_name(self):
         if self.depth == 1:
             self.full_name = self.name
