@@ -38,11 +38,14 @@ class TopicManager(models.Manager):
         return self.model.get_tree(self.get_by_full_name(full_name))
 
 
-class Topic(treebeard_mods.MP_Node):
+class AbstractTopic(treebeard_mods.MP_Node):
     """
     A node in a hierarchical storage tree, representing topics of some kind.
     The name of the topic is the name of the parent, followed by the node's
     name (with a configurable separator in between).
+
+    This is an abstract base class to allow for including attributes other than
+    just the name via inheritance.
     """
     name = models.CharField(max_length=50)
     # Denormalise things a bit so that full name lookups are fast.
@@ -52,6 +55,9 @@ class Topic(treebeard_mods.MP_Node):
     separator = "/"
 
     objects = TopicManager()
+
+    class Meta(treebeard_mods.MP_Node.Meta):
+        abstract = True
 
     def __unicode__(self):
         if not hasattr(self, "full_name") or not self.full_name:
@@ -76,5 +82,12 @@ class Topic(treebeard_mods.MP_Node):
         query on each save, but saving is much less common than retrieval).
         """
         self._set_full_name()
-        return super(Topic, self).save(*args, **kwargs)
+        return super(AbstractTopic, self).save(*args, **kwargs)
+
+class Topic(AbstractTopic):
+    """
+    The basic concrete class for a topic node. API details are defined by the
+    AbstractTopic base class.
+    """
+    pass
 
