@@ -11,7 +11,7 @@ class TopicForm(forms.ModelForm):
     underlying Topic instances.
     """
     parent = forms.ModelChoiceField(models.Topic.objects.all(), required=False,
-            empty_label="<root node>")
+            empty_label="<no parent>")
 
     class Meta:
         model = models.Topic
