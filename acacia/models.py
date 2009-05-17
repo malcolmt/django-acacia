@@ -80,6 +80,33 @@ class AbstractTopic(treebeard_mods.MP_Node):
         self._set_full_name()
         return super(AbstractTopic, self).save(*args, **kwargs)
 
+    def move(self, target, pos=None, update_funcs=()):
+        """
+        Moves current node and all descendents to a new position in the tree.
+
+        If "update_funcs" is given, it's a list of callables that are passed
+        child nodes as the first argument. Subclasses can use this list to add
+        their own hooks for things needing updating after moves.
+        """
+        # A little runtime efficiency is sacrificed here for the sake of code
+        # simplicity. The default treebeard move() method uses custom SQL to
+        # update the paths on all the children. This class has to also update
+        # all the full_name attributes. The latter is done as a separate query
+        # for each child, on the grounds that moving is far less common than
+        # reading for these types of hierarchies.
+        super(AbstractTopic, self).move(target, pos)
+
+        # After call to super's move(), "self" no longer has valid path
+        # information, so have to refetch the data from the database.
+        for node in self.__class__.objects.get(pk=self.pk).get_tree():
+            # FIXME: Since I already know the ancestor names at this point,
+            # being able to pass them into _set_full_name() would be an
+            # improvement.
+            node._set_full_name()
+            for func in update_funcs:
+                func(node)
+            node.save()
+
 class Topic(AbstractTopic):
     """
     The basic concrete class for a topic node. API details are defined by the

@@ -133,6 +133,23 @@ class TopicTest(BaseTestSetup, test.TestCase):
         expected = [u"x", u"x/y", u"x/y/c"]
         self.assertEquals(result, expected)
 
+    def test_change_parent(self):
+        """
+        Tests that setting a new parent for a node with children causes the
+        children's full names to be updated appropriately.
+        """
+        # Move the "x" in "a/x" to be a child of "a/b" (so it becomes "a/b/x").
+        target = models.Topic.objects.get_by_full_name("a/b")
+        node = models.Topic.objects.get_by_full_name("a/x")
+        node.move(target, "sorted-child")
+
+        # The "a/x/c" node should have been moved to "a/b/x/c" as part of this.
+        models.Topic.objects.get_by_full_name("a/b/x/c")
+
+        # It will no longer be accessible under its old name.
+        self.assertRaises(models.Topic.DoesNotExist,
+                models.Topic.objects.get_by_full_name, "a/x/c")
+
 class TreebeardTests(BaseTestSetup, test.TestCase):
     """
     Tests for my local modification/overrides to the default treebeard
