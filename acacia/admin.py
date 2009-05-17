@@ -43,10 +43,6 @@ class TopicForm(forms.ModelForm):
 
 
 class TopicAdmin(admin.ModelAdmin):
-    # XXX: Duplicates the field definitions from the ModelForm, which should be
-    # unnecessary. Probably a Django admin bug (if I omit this, every field is
-    # shown in the admin form).
-    fields = ("name", "parent")
     form = TopicForm
 
     def save_form(self, request, form, change):

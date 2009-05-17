@@ -35,7 +35,7 @@ create new node names and reparent existing nodes directly.
 Dependencies
 ============
 
-This code should run on Python 2.4 or later and Django 1.0.2 or later.
+This code should run on Python 2.4 or later and Django 1.0.3 or later.
 
 Acacia uses django-treebeard_ to provide the underlying tree implementation,
 so that will need to be importable before you can use this code
