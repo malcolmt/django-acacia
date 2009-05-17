@@ -18,6 +18,8 @@ Contents:
 
    introduction
    basic-usage
+   advanced-usage
+   implementation
 
 Indices and tables
 ==================

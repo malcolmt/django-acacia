@@ -1,9 +1,9 @@
-==================
-Simple Topic Trees
-==================
-
+===========
 Basic Usage
 ===========
+
+Adding Topic Classification To A Model
+======================================
 
 The most direct usage of Acacia's topic trees is to categorise entries in
 another model. You create a ``ForeignKey`` or ``ManyToManyField`` link between
@@ -27,15 +27,17 @@ model:
         text = models.FileField(upload_to="%Y%m%d")
         **topics = models.ManyToManyField(acacia_models.Topic)**
 
-That's all that is needed, aside from adding ``acacia`` to the
+That is all that is needed, aside from adding ``acacia`` to the
 ``INSTALLED_APPS`` tuple in your Django settings file. You can create topics
 and assign them to the ``Article`` model in the admin interface or directly in
 Python code. These two approaches are covered in the following sections.
 
-.. admonition:: Docs TODO
-
-    Eventually, I'll write about customised Topic subclasses so that things
-    like topics associated only with a particular model can be implemented.
+In this standard usage, every topic in the topic tree is available for use by
+every model that links to the ``acacia.models.Topic`` model. This means you can
+use the same categorisation across multiple models. If you want to have
+different topics for different models or control the topics that are available
+to a model in some other way, refer to the :ref:`advanced-custom-nodes`
+section, elsewhere in this documentation.
 
 Working With Topics In The Admin Interface
 ===========================================
@@ -44,7 +46,7 @@ Although the internals of the ``Topic`` model are fairly complex, the admin
 interface is very straightforward. For any node in the tree, you can edit its
 name and parent.
 
-.. image:: _static/basic-admin.png
+.. image:: basic-admin.png
     :alt: Default admin change page for the Topic model.
 
 The *name* of an individual node is the final component of the full name. Thus,
