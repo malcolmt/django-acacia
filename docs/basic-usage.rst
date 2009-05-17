@@ -10,11 +10,13 @@ another model. You create a ``ForeignKey`` or ``ManyToManyField`` link between
 your model and ``acacia.models.Topic`` and use it to store the category (or
 categories, in the latter case).
 
-For example, to categorise a series of articles, you might have the following
-model::
+For example, to categorise a series of articles, you might create the following
+model:
+
+.. parsed-literal::
 
     from django.db import models
-    from acacia import models as acacia_models
+    **from acacia import models as acacia_models**
 
     class Author(models.Model):
         ...
@@ -23,29 +25,43 @@ model::
         title = models.CharField(max_length=150)
         author = models.ForeignKey(Author)
         text = models.FileField(upload_to="%Y%m%d")
-        topics = models.ManyToManyField(acacia_models.Topic)
+        **topics = models.ManyToManyField(acacia_models.Topic)**
 
-Working With Topics Via The Admin Interface
+That's all that is needed, aside from adding ``acacia`` to the
+``INSTALLED_APPS`` tuple in your Django settings file. You can create topics
+and assign them to the ``Article`` model in the admin interface or directly in
+Python code. These two approaches are covered in the following sections.
+
+.. admonition:: Docs TODO
+
+    Eventually, I'll write about customised Topic subclasses so that things
+    like topics associated only with a particular model can be implemented.
+
+Working With Topics In The Admin Interface
 ===========================================
 
 Although the internals of the ``Topic`` model are fairly complex, the admin
-interface is very straightforward. You can edit the name of a node in the tree
-and the parent of the node.
+interface is very straightforward. For any node in the tree, you can edit its
+name and parent.
+
+.. image:: _static/basic-admin.png
+    :alt: Default admin change page for the Topic model.
 
 The *name* of an individual node is the final component of the full name. Thus,
-if the node's full name (path) is ``"timeframe/today/urgent"``, the name of the
-node is ``"urgent"``. The parent of that node is the ``"timeframe/today"`` node.
+if the node's full name is "timeframe/today/urgent", the name of the node is
+"urgent". The parent of that node is the "timeframe/today" node.
 
 Topic nodes are sorted lexicographically by their full name when presented in
-the admin. Given the nodes, ``"pet"``, ``"pet/dog"``, ``"pet/cat"`` and
-``"owners"``, they will sort in this order::
+the admin. Given the nodes, "pet", "pet/dog", "pet/cat" and "owners", they will
+sort in this order::
 
     owners
     pet
     pet/cat
     pet/dog
 
-This makes finding the appropriate node in a list fairly straightforward.
+This makes finding the appropriate node in a list fairly straightforward, since
+all children are grouped together, immediately after their parent.
 
 .. admonition:: Coming Soon
 
@@ -54,10 +70,13 @@ This makes finding the appropriate node in a list fairly straightforward.
     even a few dozen topics, the selection list can become quite long and
     unwieldy.
 
-Selecting Topics Objects In Django Code
-=======================================
+Working With Topics In Django Code
+==================================
 
 .. currentmodule:: acacia.models
+
+Selecting Topics
+----------------
 
 It will be common ``Acacia`` usage to want to select :class:`Topic` objects
 using their full, human-readable names. Those names are natural candidates for
