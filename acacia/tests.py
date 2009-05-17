@@ -2,7 +2,7 @@
 Tests for both the local treebeard overrides and the whole hierarchical topic
 structure.
 """
-from django import test
+from django import db, test
 
 import models
 
@@ -149,6 +149,18 @@ class TopicTest(BaseTestSetup, test.TestCase):
         # It will no longer be accessible under its old name.
         self.assertRaises(models.Topic.DoesNotExist,
                 models.Topic.objects.get_by_full_name, "a/x/c")
+
+    def test_create_duplicate_entry(self):
+        """
+        Tests that an appropriate error is raised if the tree is manipulated in
+        such a way that a duplicate full name would be created.
+        """
+        target = models.Topic.objects.get_by_full_name("a")
+        node = models.Topic.objects.get_by_full_name("x")
+        # Attempting to move "x" under "a" raises an error at the database
+        # level because we already have an "a/x" node.
+        self.assertRaises(db.IntegrityError, node.move, target,
+                "sorted-child")
 
 class TreebeardTests(BaseTestSetup, test.TestCase):
     """

@@ -49,7 +49,7 @@ class AbstractTopic(treebeard_mods.MP_Node):
     """
     name = models.CharField(max_length=50)
     # Denormalise things a bit so that full name lookups are fast.
-    full_name = models.CharField(max_length=512, db_index=True)
+    full_name = models.CharField(max_length=512, unique=True)
 
     node_order_by = ["name"]
     separator = "/"
