@@ -1,0 +1,15 @@
+A brief, but hopefully current, list of the features I want to add or fix.
+
+Problems
+==========
+- The bulk delete action in Django 1.1 should also delete children of any node
+  selected for delete (and include them in the confirmation list before doing
+  so).
+
+Features
+=========
+- Javascript tree widget for editing
+	- YUI-based
+	- JQuery-based
+	- dynamic loading of data for really large sets.
+
