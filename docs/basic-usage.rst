@@ -83,9 +83,10 @@ Selecting Topics
 It will be common ``Acacia`` usage to want to select :class:`Topic` objects
 using their full, human-readable names. Those names are natural candidates for
 using in URLs and the like, so you need to be able to return from the string
-form to the correct object or subtree of objects. This is the only reason
-``Acacia`` exists as an application on top of `treebeard`_: to provide
-alternative access methods.
+form to the correct object or subtree of objects. In fact, this is the only
+reason ``Acacia`` exists as an application, rather than simply using
+`treebeard`_ directly: to provide alternative access methods to the individual
+nodes.
 
 .. _treebeard: http://code.google.com/p/django-treebeard/
 
@@ -96,9 +97,30 @@ its string form::
 
     Topic.objects.get_by_full_name("animal/cat")
 
-For convenience (particularly when working with URLs), repeated separators
-between name components (the ``"/"`` character) are collapsed into a single
-separator. So ``animal//cat`` is the same as ``animal/cat``. Leading and
-trailing separators are also ignored. Thus, ``/animal/cat/`` is also the same
-as ``animal/cat``.
+For convenience and consistency repeated separators between name components
+(the ``"/"`` character) are collapsed into a single separator. Leading and
+trailing separators are also removed. Thus, ``animal//cat`` and
+``/animal/cat/`` are both normalised to ``animal/cat``.
+
+If you call ``get_by_full_name()`` and pass in a name that does not exist as a
+topic node, a ``Topic.DoesNotExist`` exception is raised. This is similar to
+the behaviour of the ``get()`` method in Django's queryset API.
+
+Automatically Creating New Topics
+---------------------------------
+
+:class:`Topic` objects can be created using the object's full name. You do not
+need to worry about whether the necessary parent node exists, as Acacia will
+create any missing ancestor nodes. If a node with the given full name already
+exists, a duplicate node is not created. Rather, the existing node is returned
+as part of the call. This is all done using ``get_or_create_by_full_name()``::
+
+    node, created = Topic.objects.get_or_create_by_full_name(
+            "software/language/python")
+
+The returned ``node`` object is the ``Topic`` object that was requested. The
+``created`` value is ``True`` is the ``node`` was newly created and ``False``
+is it already existed in the tree. The analogy with Django's queryset`
+``get_or_create()`` method should be clear.
+
 

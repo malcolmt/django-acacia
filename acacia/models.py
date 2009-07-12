@@ -37,6 +37,31 @@ class TopicManager(models.Manager):
         """
         return self.model.get_tree(self.get_by_full_name(full_name))
 
+    def get_or_create_by_full_name(self, full_name):
+        """
+        Retrieves a topic with the given full_name. If the topic doesn't exist,
+        it is created (along with all the necessary parent topics).
+
+        Returns a pair: the topic object and a boolean flag indicating whether
+        or not a new object was created.
+        """
+        try:
+            node = self.get_by_full_name(full_name)
+            return node, False
+        except self.model.DoesNotExist:
+            pass
+
+        pieces = full_name.rsplit(self.model.separator, 1)
+        if len(pieces) == 1:
+            return self.model.create(name=pieces[0]), True
+        parent, created = self.get_or_create_by_full_name(pieces[0])
+        if not pieces[1]:
+            # full_name ended with a trailing separator (e.g. /foo/bar/).
+            return parent, created
+        node = self.model(name=pieces[-1])
+        parent.add_child(node)
+        return node, True
+
 
 class AbstractTopic(treebeard_mods.MP_Node):
     """
@@ -65,6 +90,12 @@ class AbstractTopic(treebeard_mods.MP_Node):
         return self.full_name
 
     def _set_full_name(self):
+        """
+        Sets the full_name attribute to the correct value. Generally called as
+        part of saving the class, but can also be called by other class methods
+        that need an accurate value before displaying the __unicode__ output,
+        for example.
+        """
         if self.depth == 1:
             self.full_name = self.name
         else:
@@ -77,6 +108,7 @@ class AbstractTopic(treebeard_mods.MP_Node):
         Updates the full_name attribute prior to saving (incurs an extra lookup
         query on each save, but saving is much less common than retrieval).
         """
+        # FIXME: Need to handle the case of creating a duplicate node.
         self._set_full_name()
         return super(AbstractTopic, self).save(*args, **kwargs)
 

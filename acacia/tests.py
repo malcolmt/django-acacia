@@ -162,6 +162,46 @@ class TopicTest(BaseTestSetup, test.TestCase):
         self.assertRaises(db.IntegrityError, node.move, target,
                 "sorted-child")
 
+    def test_create_by_full_name1(self):
+        """
+        Tests that creating a new node parented to an existing node using the
+        full name works.
+        """
+        _, created = models.Topic.objects.get_or_create_by_full_name("a/b/e")
+        self.failUnlessEqual(created, True)
+        node = models.Topic.objects.get_by_full_name("a/b/e")
+        self.failUnlessEqual(unicode(node), u"a/b/e")
+
+    def test_create_by_full_name2(self):
+        """
+        Tests that creating a new node with new parents, using the full name,
+        works.
+        """
+        _, created = models.Topic.objects.get_or_create_by_full_name("a/z/z")
+        self.failUnlessEqual(created, True)
+        node = models.Topic.objects.get_by_full_name("a/z/z")
+        self.failUnlessEqual(unicode(node), u"a/z/z")
+
+    def test_create_by_full_name3(self):
+        """
+        Tests that attempting to create a new node using a full name that
+        already exists works as expected (the pre-existing node is returned and
+        nothing new is created).
+        """
+        _, created = models.Topic.objects.get_or_create_by_full_name("c/b/d")
+        self.failUnlessEqual(created, False)
+
+    def test_create_by_full_name4(self):
+        """
+        Tests that creating a new node with existing parents, using the full
+        name, normalises the full name properly (trailing and multiple
+        separators).
+        """
+        node, created = models.Topic.objects.get_or_create_by_full_name(
+                "a///b/e//")
+        self.failUnlessEqual(created, True)
+        self.failUnlessEqual(unicode(node), u"a/b/e")
+
 class TreebeardTests(BaseTestSetup, test.TestCase):
     """
     Tests for my local modification/overrides to the default treebeard
