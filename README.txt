@@ -2,9 +2,17 @@
 Acacia -- Simple Topic Trees
 ============================
 
-Acacia is a small Django application that provides hierarchical topic or
-category naming. Other Django applications can then use the topic trees to
-categorise articles or objects with human-readable names.
+Acacia is a small Django application that provides hierarchical topic naming.
+Other Django applications can use the topic trees to categorise and retrieve
+objects using human-readable names.
+
+Documentation
+=============
+
+Full documentation for Acacia is available in the docs/ directory of the
+source. It is marked up using the Sphinx documentation system -- restructured
+text plus some extras for inter-file connections. Running "make html" in the
+docs directory is one way to create the HTML version.
 
 Dependencies
 ============
@@ -13,14 +21,22 @@ This code should run on Python 2.4 or later and Django 1.0.3 or later.
 
 Acacia uses django-treebeard_ to provide the underlying tree implementation,
 so that will need to be importable before you can use this code
-(``django-treebeard`` doesn't require installation, so it only has to be on
-the Python import path, not part of Django's ``INSTALLED_APPS`` setting).
+(``django-treebeard`` doesn't appear to require installation, so it only has
+to be on the Python import path, not part of Django's ``INSTALLED_APPS``
+setting).
 
 .. _django-treebeard: http://code.google.com/p/django-treebeard/
 
-More Documentation
-==================
+Testing
+=======
 
-Full documentation for Acacia is available in the docs/ directory of the
-source.
+Acacia uses the standard Django testing framework. Any execution of
+"django-admin.py test" (or "manage.py test") in a project that has Acacia
+installed will execute the Acacia tests.
+
+In addition to this, there is a testing/runtests.py script for executing the
+tests in standalone mode. This makes testing during development of Acacia
+itself easier, as it removes the need to install Acacia into a fake Django
+project. Execute that script from anywhere and it will run through all of
+Acacia's unittests in isolation.
 
