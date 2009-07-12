@@ -6,10 +6,35 @@ Problems
   selected for delete (and include them in the confirmation list before doing
   so).
 
+- In normal code, we have to handle the case of attempting to create and save a
+  node that already exists.
+
+- When moving nodes, both in code and in the admin, need to handle merging
+  trees. For example, if the tree looks like this:
+
+        software/languages/python
+        software/languages/python/debugging
+        software/python/
+        software/python/debugging
+        software/python/design-patterns
+
+  and we move software/python to underneath software/languages, the new nodes
+  that have names similar to existing nodes should merge and the new tree
+  should look like:
+
+        software/languages/python/
+        software/languages/python/debugging
+        software/languages/python/design-patterns
+
+  The tricky part here is that this means some pk values will change, so
+  references to those objects have to be updated.
+
 Features
 =========
 - Javascript tree widget for editing
-	- YUI-based
-	- JQuery-based
-	- dynamic loading of data for really large sets.
+        - YUI-based
+        - JQuery-based
+        - dynamic loading of data for really large sets.
 
+- Add a setup.py and possibly other build scripts that the Kool Kids use these
+  days.
