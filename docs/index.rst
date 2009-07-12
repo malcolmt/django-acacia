@@ -2,8 +2,8 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Documentation For Acacia
-========================
+Acacia: Simple Topic Trees For Django
+=====================================
 
 Acacia is a small Django application that provides hierarchical topic or
 category objects. Other Django applications can then use the topic trees to
@@ -16,7 +16,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   introduction
+   what
    basic-usage
    advanced-usage
    implementation

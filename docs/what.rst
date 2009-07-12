@@ -1,6 +1,6 @@
-============
-Introduction
-============
+======================
+What Are Topic Trees?
+======================
 
 Topic Trees Versus Tagging
 ===========================
@@ -39,8 +39,8 @@ last decade has shown that. However, if you need a more structured system, it
 is worth using a proper tree-like modelling scheme, rather than trying to fake
 the names with tags.
 
-Topic Trees Are Trees Plus Some Extras
-=======================================
+Trees With Some Extra Features
+===============================
 
 If you are in a situation where an hierarchical labelling system is
 appropriate, it might seem that you are somewhat be spoilt for choice. There
@@ -59,8 +59,9 @@ topics or categories using a human-readable name. Internally, the nodes in the
 tree are not stored or related in that fashion, so some conversion functions
 are always necessary.
 
-What Acacia Provides
----------------------
+
+Acacia's Approach
+------------------
 
 Acacia has been developed to provide an extra layer of wrapper functions in
 order to make those common lookup patterns (and similar manipulations) easy. It
