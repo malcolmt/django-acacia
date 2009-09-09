@@ -1,7 +1,20 @@
 A brief, but hopefully current, list of the features I want to add or fix.
 
+Use-cases still to cover
+=========================
+
+These items might not be problems yet. Need to check they're possible and fill in support.
+
+- non-ASCII tags and sorting order. We're obviously going to fail a strict
+  version of the Turkish test, but the main pieces should Just Work. I want to
+  remember to verify that.
+
+- merging nodes is going to need a way to trigger "old URL storage" for HTTP
+  redirects. (Maybe) not by default, but certainly as an option. Will be an
+  issue on my blog, for example.
+
 Problems
-==========
+=========
 - The bulk delete action in Django 1.1 should also delete children of any node
   selected for delete (and include them in the confirmation list before doing
   so).
@@ -38,3 +51,4 @@ Features
 
 - Add a setup.py and possibly other build scripts that the Kool Kids use these
   days.
+
