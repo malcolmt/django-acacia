@@ -7,7 +7,7 @@ to be viewed as something flat by the kids these days.
 
 from django.db import models
 
-import treebeard_mods
+import mptt
 
 
 class TopicManager(models.Manager):
@@ -24,8 +24,11 @@ class TopicManager(models.Manager):
         # Ensure foo//bar is the same as foo/bar. Nice to have.
         sep = self.model.separator
         pieces = [o for o in full_name.split(sep) if o]
-        normalised_path = sep.join(pieces)
-        return self.get(full_name=normalised_path)
+        for candidate in self.filter(level=len(pieces)-1, name=pieces[-1]):
+            parents = candidate.get_ancestors().values_list("name", flat=True)
+            if list(parents) == pieces[:-1]:
+                return candidate
+        raise self.model.DoesNotExist
 
     def get_subtree(self, full_name):
         """
@@ -33,14 +36,16 @@ class TopicManager(models.Manager):
         with this tag as an ancestor. The first item in the list will be the
         tag with the passed in long name.
 
-        Raises Tag.DoesNotExist if there is no tag with 'long_name'.
+        Raises Topic.DoesNotExist if there is no tag with 'long_name'.
         """
-        return self.model.get_tree(self.get_by_full_name(full_name))
+        return self.get_by_full_name(full_name).get_descendants(True)
 
     def get_or_create_by_full_name(self, full_name):
         """
         Retrieves a topic with the given full_name. If the topic doesn't exist,
-        it is created (along with all the necessary parent topics).
+        it is created (along with all the necessary parent topics). This is
+        analogous to Django's get_or_create() manager method, with additional
+        logic to handle long names.
 
         Returns a pair: the topic object and a boolean flag indicating whether
         or not a new object was created.
@@ -51,6 +56,7 @@ class TopicManager(models.Manager):
         except self.model.DoesNotExist:
             pass
 
+        # TODO: Feels like I should be able to do this with less queries.
         pieces = full_name.rsplit(self.model.separator, 1)
         if len(pieces) == 1:
             return self.model.create(name=pieces[0]), True
@@ -58,12 +64,11 @@ class TopicManager(models.Manager):
         if not pieces[1]:
             # full_name ended with a trailing separator (e.g. /foo/bar/).
             return parent, created
-        node = self.model(name=pieces[-1])
-        parent.add_child(node)
+        node = self.create(name=pieces[-1], parent=parent)
         return node, True
 
 
-class AbstractTopic(treebeard_mods.MP_Node):
+class AbstractTopic(models.Model):
     """
     A node in a hierarchical storage tree, representing topics of some kind.
     The name of the topic is the name of the parent, followed by the node's
@@ -73,71 +78,58 @@ class AbstractTopic(treebeard_mods.MP_Node):
     just the name via inheritance.
     """
     name = models.CharField(max_length=50)
-    # Denormalise things a bit so that full name lookups are fast.
-    full_name = models.CharField(max_length=512, unique=True)
-
-    node_order_by = ["name"]
-    separator = "/"
+    parent = models.ForeignKey("self", null=True, blank=True,
+            related_name="children")
+    # The level of this node in the tree it belongs to (used by mptt).
+    level = models.PositiveIntegerField()
 
     objects = TopicManager()
+    separator = u"/"
 
-    class Meta(treebeard_mods.MP_Node.Meta):
+    class Meta:
         abstract = True
 
     def __unicode__(self):
-        if not hasattr(self, "full_name") or not self.full_name:
-            self._set_full_name()
-        return self.full_name
+        return self.full_name()
 
-    def _set_full_name(self):
-        """
-        Sets the full_name attribute to the correct value. Generally called as
-        part of saving the class, but can also be called by other class methods
-        that need an accurate value before displaying the __unicode__ output,
-        for example.
-        """
-        if self.depth == 1:
-            self.full_name = self.name
-        else:
-            parent = self.separator.join(
-                    list(self.get_ancestors().values_list("name", flat=True)))
-            self.full_name = "%s%s%s" % (parent, self.separator, self.name)
+    def full_name(self):
+        if not hasattr(self, "_full_name_cache"):
+            if self.level:
+                parents = self.separator.join(
+                        self.get_ancestors().values_list("name", flat=True))
+                self._full_name_cache = u"%s%s%s" % (parents, self.separator,
+                        self.name)
+            else:
+                self._full_name_cache = self.name
+        return self._full_name_cache
 
-    def save(self, *args, **kwargs):
-        """
-        Updates the full_name attribute prior to saving (incurs an extra lookup
-        query on each save, but saving is much less common than retrieval).
-        """
-        # FIXME: Need to handle the case of creating a duplicate node.
-        self._set_full_name()
-        return super(AbstractTopic, self).save(*args, **kwargs)
+    # FIXME: Implement this in a reasonable fashion for mptt-based trees.
+    ##def move_to(self, target, pos=None, update_funcs=()):
+    ##    """
+    ##    Moves current node and all descendents to a new position in the tree.
 
-    def move(self, target, pos=None, update_funcs=()):
-        """
-        Moves current node and all descendents to a new position in the tree.
+    ##    If "update_funcs" is given, it's a list of callables that are passed
+    ##    child nodes as the first argument. Subclasses can use this list to add
+    ##    their own hooks for things needing updating after moves.
+    ##    """
+    ##    # A little runtime efficiency is sacrificed here for the sake of code
+    ##    # simplicity. The default treebeard move() method uses custom SQL to
+    ##    # update the paths on all the children. This class has to also update
+    ##    # all the full_name attributes. The latter is done as a separate query
+    ##    # for each child, on the grounds that moving is far less common than
+    ##    # reading for these types of hierarchies.
+    ##    super(AbstractTopic, self).move(target, pos)
 
-        If "update_funcs" is given, it's a list of callables that are passed
-        child nodes as the first argument. Subclasses can use this list to add
-        their own hooks for things needing updating after moves.
-        """
-        # A little runtime efficiency is sacrificed here for the sake of code
-        # simplicity. The default treebeard move() method uses custom SQL to
-        # update the paths on all the children. This class has to also update
-        # all the full_name attributes. The latter is done as a separate query
-        # for each child, on the grounds that moving is far less common than
-        # reading for these types of hierarchies.
-        super(AbstractTopic, self).move(target, pos)
-
-        # After call to super's move(), "self" no longer has valid path
-        # information, so have to refetch the data from the database.
-        for node in self.__class__.objects.get(pk=self.pk).get_tree():
-            # FIXME: Since I already know the ancestor names at this point,
-            # being able to pass them into _set_full_name() would be an
-            # improvement.
-            node._set_full_name()
-            for func in update_funcs:
-                func(node)
-            node.save()
+    ##    # After call to super's move(), "self" no longer has valid path
+    ##    # information, so have to refetch the data from the database.
+    ##    for node in self.__class__.objects.get(pk=self.pk).get_tree():
+    ##        # FIXME: Since I already know the ancestor names at this point,
+    ##        # being able to pass them into _set_full_name() would be an
+    ##        # improvement.
+    ##        node._set_full_name()
+    ##        for func in update_funcs:
+    ##            func(node)
+    ##        node.save()
 
 class Topic(AbstractTopic):
     """
@@ -145,4 +137,6 @@ class Topic(AbstractTopic):
     AbstractTopic base class.
     """
     pass
+
+mptt.register(Topic, order_insertion_by=["name"])
 

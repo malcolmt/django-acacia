@@ -3,8 +3,8 @@
 A script to run the Acacia tests in standalone mode, using an absolute minimal
 configuration.
 
-Uses SQLite as the database and assumes the django-treebeard application is
-importable as "treebeard" (that is, assumes it is on the Python path somewhere).
+Uses SQLite as the database and assumes the django-mptt application is
+importable as "mptt" (that is, assumes it is on the Python path somewhere).
 """
 
 import os

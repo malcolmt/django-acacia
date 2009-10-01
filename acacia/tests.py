@@ -1,6 +1,5 @@
 """
-Tests for both the local treebeard overrides and the whole hierarchical topic
-structure.
+Tests for the hierarchical topic structure.
 """
 from django import db, test
 
@@ -12,46 +11,22 @@ class BaseTestSetup(object):
     """
     def setUp(self):
         """
-        Load some potentially confusing topic data. There are four topics here
-        are:
-            - a/b/c
-            - a/x/c
-            - c/b/d
-            - x/y/c
+        Load some potentially confusing topic data.
 
-        The tests can use the fact that node "c" appears as the leaf of three
+        The tests can use the fact that node "c" appears as the leaf of multiple
         similar, but different paths and that some nodes appear multiple times
         (and node "d" only appears once).
-
         """
-        content = [
-                {"data": {"name": "a"},
-                "children": [
-                    {"data": {"name": "b"},
-                    "children": [
-                        {"data": {"name": "c"}},
-                    ]},
-                    {"data": {"name": "x"},
-                    "children": [
-                        {"data": {"name": "c"}},
-                    ]},
-                ]},
-                {"data": {"name": "c"},
-                "children": [
-                    {"data": {"name": "b"},
-                    "children": [
-                        {"data": {"name": "d"}},
-                    ]},
-                ]},
-                {"data": {"name": "x"},
-                "children": [
-                    {"data": {"name": "y"},
-                    "children": [
-                        {"data": {"name": "c"}},
-                    ]},
-                ]},
-        ]
-        models.Topic.load_bulk(content)
+        nodes = ["a/b/c",
+                 "a/x/c",
+                 "c/b/d",
+                 "x/y/c"]
+        for node in nodes:
+            pieces = node.split("/")
+            obj = models.Topic.objects.get_or_create(name=pieces[0], level=0)[0]
+            for piece in pieces[1:]:
+                obj = models.Topic.objects.get_or_create(name=piece,
+                        parent=obj)[0]
 
 class TopicTest(BaseTestSetup, test.TestCase):
     """
@@ -91,9 +66,9 @@ class TopicTest(BaseTestSetup, test.TestCase):
 
     def test_get_by_full_name3(self):
         """
-        Tests that we can correctly retrieve a node given its full name. When
-        the fulli name only contains a single component, there's a third
-        processing path involved and this is what's tested here.
+        Tests that we can correctly retrieve a node given its full name. In
+        this case, we're testing the potential edge-case where the name has
+        only a single component.
         """
         # Use "c" as the test here, since there's more than one Topic instance
         # with a name of "c", but only one topic whose full name is "c".
@@ -104,7 +79,7 @@ class TopicTest(BaseTestSetup, test.TestCase):
     def test_get_subtree(self):
         """
         Tests that the subtree rooted at a particular node (given by full name)
-        is retrieved correctly.
+        is retrieved (and sorted) correctly.
         """
         result = [unicode(obj) for obj in models.Topic.objects.get_subtree("a")]
         expected = [u"a", u"a/b", u"a/b/c", u"a/x", u"a/x/c"]
@@ -120,15 +95,15 @@ class TopicTest(BaseTestSetup, test.TestCase):
         topic3 = models.Topic.objects.get_by_full_name("c/b/d/")
         topic4 = models.Topic.objects.get_by_full_name("/c/b/d/")
         self.assertEquals(topic1, topic2)
-        self.assertEquals(topic3, topic2)
+        self.assertEquals(topic2, topic3)
         self.assertEquals(topic3, topic4)
 
     def test_unicode(self):
         """
         Tests that the __unicode__() method displays the correct thing.
         """
-        topic = models.Topic.objects.get(name="x", depth=1)
-        tree = models.Topic.get_tree(topic)
+        topic = models.Topic.objects.get(name="x", level=0)
+        tree = topic.get_descendants(True)
         result = [unicode(obj) for obj in tree]
         expected = [u"x", u"x/y", u"x/y/c"]
         self.assertEquals(result, expected)
@@ -141,7 +116,7 @@ class TopicTest(BaseTestSetup, test.TestCase):
         # Move the "x" in "a/x" to be a child of "a/b" (so it becomes "a/b/x").
         target = models.Topic.objects.get_by_full_name("a/b")
         node = models.Topic.objects.get_by_full_name("a/x")
-        node.move(target, "sorted-child")
+        node.move_to(target)
 
         # The "a/x/c" node should have been moved to "a/b/x/c" as part of this.
         models.Topic.objects.get_by_full_name("a/b/x/c")
@@ -150,17 +125,19 @@ class TopicTest(BaseTestSetup, test.TestCase):
         self.assertRaises(models.Topic.DoesNotExist,
                 models.Topic.objects.get_by_full_name, "a/x/c")
 
-    def test_create_duplicate_entry(self):
-        """
-        Tests that an appropriate error is raised if the tree is manipulated in
-        such a way that a duplicate full name would be created.
-        """
-        target = models.Topic.objects.get_by_full_name("a")
-        node = models.Topic.objects.get_by_full_name("x")
-        # Attempting to move "x" under "a" raises an error at the database
-        # level because we already have an "a/x" node.
-        self.assertRaises(db.IntegrityError, node.move, target,
-                "sorted-child")
+    # TODO: merging nodes with common names isn't implemented yet. The
+    # behaviour of this test is incorrect in any case (they shoul merge, not
+    # error out).
+    #def test_create_duplicate_entry(self):
+    #    """
+    #    Tests that an appropriate error is raised if the tree is manipulated in
+    #    such a way that a duplicate full name would be created.
+    #    """
+    #    target = models.Topic.objects.get_by_full_name("a")
+    #    node = models.Topic.objects.get_by_full_name("x")
+    #    # Attempting to move "x" under "a" raises an error at the database
+    #    # level because we already have an "a/x" node.
+    #    self.assertRaises(db.IntegrityError, node.move_to, target)
 
     def test_create_by_full_name1(self):
         """
@@ -201,35 +178,4 @@ class TopicTest(BaseTestSetup, test.TestCase):
                 "a///b/e//")
         self.failUnlessEqual(created, True)
         self.failUnlessEqual(unicode(node), u"a/b/e")
-
-class TreebeardTests(BaseTestSetup, test.TestCase):
-    """
-    Tests for my local modification/overrides to the default treebeard
-    functionality.
-    """
-    def test_add_instance_as_child(self):
-        """
-        Tests that an unsaved Topic instance can be inserted as a child of some
-        other node in the tree.
-        """
-        root = models.Topic.get_first_root_node()
-        node = models.Topic(name="new child")
-        root.add_child(node)
-        # The instance should be saved as part of this process.
-        self.failIf(node.pk is None)
-        children = [unicode(obj) for obj in root.get_children()]
-        expected = [u"a/b", u"a/new child", u"a/x"]
-        self.assertEquals(children, expected)
-
-    def test_add_instance_as_root(self):
-        """
-        Tests that an unsaved Topic instance can be inserted as a new root node.
-        """
-        node = models.Topic(name="new root")
-        models.Topic.add_root(node)
-        # The instance should be saved as part of this process.
-        self.failIf(node.pk is None)
-        root = [unicode(obj) for obj in models.Topic.get_root_nodes()]
-        expected = [u"a", u"c", u"new root", u"x"]
-        self.assertEquals(root, expected)
 
