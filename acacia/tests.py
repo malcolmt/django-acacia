@@ -94,9 +94,11 @@ class TopicTest(BaseTestSetup, test.TestCase):
         topic2 = models.Topic.objects.get_by_full_name("c//b/d")
         topic3 = models.Topic.objects.get_by_full_name("c/b/d/")
         topic4 = models.Topic.objects.get_by_full_name("/c/b/d/")
+        topic5 = models.Topic.objects.get_by_full_name("///c/b/d////")
         self.assertEquals(topic1, topic2)
         self.assertEquals(topic2, topic3)
         self.assertEquals(topic3, topic4)
+        self.assertEquals(topic4, topic5)
 
     def test_unicode(self):
         """
@@ -144,10 +146,10 @@ class TopicTest(BaseTestSetup, test.TestCase):
         Tests that creating a new node parented to an existing node using the
         full name works.
         """
+        _, created = models.Topic.objects.get_or_create_by_full_name("a/b")
+        self.failUnlessEqual(created, False)
         _, created = models.Topic.objects.get_or_create_by_full_name("a/b/e")
         self.failUnlessEqual(created, True)
-        node = models.Topic.objects.get_by_full_name("a/b/e")
-        self.failUnlessEqual(unicode(node), u"a/b/e")
 
     def test_create_by_full_name2(self):
         """
