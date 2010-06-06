@@ -42,11 +42,13 @@ Problems
   The tricky part here is that this means some pk values will change, so
   references to those objects have to be updated.
 
+- Think about any API requirements for supporting multiple databases (since I
+  have a few methods that create objects).
+
 Features
 =========
 - Javascript tree widget for editing
         - YUI-based
-        - JQuery-based
         - dynamic loading of data for really large sets.
 
 - Add a setup.py and possibly other build scripts that the Kool Kids use these
