@@ -3,7 +3,7 @@ A hierarchical topics scheme.
 
 The important piece here is the hierarchy. This is not tagging -- which tends
 to be viewed as something flat by kids these days. We have no time for such a
-shallow view on information organisation here.
+shallow view of information organisation here.
 """
 
 import mptt

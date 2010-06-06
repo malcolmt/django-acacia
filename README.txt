@@ -19,7 +19,9 @@ Dependencies
 
 This code should run on Python 2.4 or later and Django 1.2[#]_ or later.
 
-Acacia uses django-mptt_ to provide the underlying tree implementation, so you will need that as installed Django application before being able to use django-acacia.
+Acacia uses django-mptt_ to provide the underlying tree implementation, so you
+will need that as installed Django application before being able to use
+django-acacia.
 
 .. [#] To check: is there a strict 1.2 requirement, or does it also work with Django 1.1?
 .. _django-mptt: http://code.google.com/p/django-mptt/
