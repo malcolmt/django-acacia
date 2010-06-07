@@ -282,6 +282,13 @@ class TopicTest(BaseTestSetup, test.TestCase):
         self.failUnlessEqual(created, True)
         self.failUnlessEqual(unicode(node), u"a/b/e")
 
+    def test_create_by_full_name5(self):
+        """
+        Tests that creating a new node with a new root works as expected.
+        """
+        _, created = models.Topic.objects.get_or_create_by_full_name("j/k/l")
+        self.failUnlessEqual(created, True)
+
     def test_create_duplicate_entry(self):
         """
         Tests that creating a node that already exists results in an error.

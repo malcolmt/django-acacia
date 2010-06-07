@@ -53,7 +53,7 @@ class TopicManager(models.Manager):
         # TODO: Feels like I should be able to do this with fewer queries.
         pieces = full_name.rsplit(self.model.separator, 1)
         if len(pieces) == 1:
-            return self.model.create(name=pieces[0]), True
+            return self.create(name=pieces[0]), True
         parent, created = self.get_or_create_by_full_name(pieces[0])
         if not pieces[1]:
             # full_name ended with a trailing separator (e.g. /foo/bar/).
