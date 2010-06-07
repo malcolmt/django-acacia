@@ -33,8 +33,11 @@ class TreeTrunkNode(template.Node):
                 pieces.append(u"<ul>\n<li>%s" % escape(node.name))
                 current_level += 1
             else:
-                pieces.append(u"</li></ul></li>\n<li>%s" % escape(node.name))
-                current_level -= 1
+                while diff:
+                    pieces.append(u"</li></ul>")
+                    diff += 1
+                    current_level -= 1
+                pieces.append(u"</li>\n<li>%s" % escape(node.name))
         if len(pieces) == 1:
             # No content in the tree means no output.
             return u""

@@ -57,6 +57,21 @@ class TreeTrunkMiscTests(test.TestCase):
         """
         self.failIf(convert("{% load acacia %}{% treetrunk acacia.Topic %}"))
 
+    def test_html_sensitive_content(self):
+        setup_from_node_strings([">/&amp;/<"])
+        output = convert("{% load acacia %}{% treetrunk acacia.Topic 5 %}")
+        output = output.replace("\n", "")
+        expected = """
+            <ul>
+                <li>&gt;
+                <ul><li>&amp;amp;
+                    <ul><li>&lt;</li></ul>
+                </li></ul>
+            </li></ul>""".replace("\n", "").replace(" ", "")
+        self.failUnlessEqual(output, expected, "\nGot     %s\n\nExpected %s" %
+                (output, expected))
+
+
 class TreeTrunkSingleRootTests(test.TestCase):
     def setUp(self):
         # pylint: disable-msg=C0103
@@ -164,13 +179,44 @@ class TreeTrunkFullContentTests(test.TestCase):
         ]
         setup_from_node_strings(nodes)
 
-# TODO: Tests
-#   - multiple roots in tree; trees of different depths
-#   - default level value
-#   - level value less than depth of tree
-#   - level value more than depth of tree
-#   - level value equal to depth of tree
-#   - Tag with unicode name containing HTML special characters (e.g. < and
-#     &amp;)
+    def test_one_level(self):
+        output = convert("{% load acacia %}{% treetrunk acacia.Topic 1 %}")
+        output = output.replace("\n", "")
+        expected = """
+            <ul>
+                <li>root1</li>
+                <li>root2</li>
+                <li>root3</li>
+            </ul>""".replace("\n", "").replace(" ", "")
+        self.failUnlessEqual(output, expected, "\nGot      %s\n\nExpected %s" %
+                (output, expected))
 
+    def test_three_levels(self):
+        output = convert("{% load acacia %}{% treetrunk acacia.Topic 3 %}")
+        output = output.replace("\n", "")
+        expected = """
+            <ul>
+                <li>root1
+                <ul><li>child1
+                    <ul><li>grandchild1</li>
+                        <li>grandchild2</li>
+                        <li>grandchild3</li></ul></li>
+                    <li>child2
+                    <ul><li>grandchild1</li>
+                        <li>grandchild2</li></ul></li>
+                    <li>child3
+                    <ul><li>grandchild1</li></ul></li>
+                    <li>child4</li>
+                </ul></li>
+                <li>root2
+                <ul><li>child1
+                    <ul><li>grandchild1</li></ul></li>
+                    <li>child2
+                    <ul><li>grandchild1</li>
+                        <li>grandchild2</li></ul></li>
+                </ul></li>
+                <li>root3</li>
+            </ul>""".replace("\n", "").replace(" ", "")
+        self.failUnlessEqual(output, expected, "\nGot      %s\n\nExpected %s" %
+                (output, expected))
 
