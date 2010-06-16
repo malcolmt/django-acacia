@@ -3,8 +3,8 @@ import unittest
 from acacia.tests import test_models, test_templatetags
 
 def suite():
-    suite = unittest.defaultTestLoader.loadTestsFromModule(test_models)
-    suite.addTests(unittest.defaultTestLoader. \
+    test_suite = unittest.defaultTestLoader.loadTestsFromModule(test_models)
+    test_suite.addTests(unittest.defaultTestLoader. \
             loadTestsFromModule(test_templatetags))
-    return suite
+    return test_suite
 
