@@ -17,7 +17,7 @@ class BaseTestSetup(object):
         similar, but different paths and that some nodes appear multiple times
         (and node "d" only appears once).
         """
-        # pylint: disable-msg=C0103,R0201
+        # pylint: disable-msg=R0201
         nodes = ["a/b/c",
                  "a/x/c",
                  "c/b/d",
@@ -35,7 +35,6 @@ class BaseTestSetup(object):
         self.signals = []
 
     def tearDown(self):
-        # pylint: disable-msg=C0103
         self.signals = []
 
     def signal_catcher(self, sender, **kwargs):

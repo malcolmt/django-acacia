@@ -74,7 +74,6 @@ class TreeTrunkMiscTests(test.TestCase):
 
 class TreeTrunkSingleRootTests(test.TestCase):
     def setUp(self):
-        # pylint: disable-msg=C0103
         nodes = [
                 "root1/child1/grandchild1",
                 "root1/child1/grandchild2",
@@ -163,7 +162,6 @@ class TreeTrunkSingleRootTests(test.TestCase):
 
 class TreeTrunkFullContentTests(test.TestCase):
     def setUp(self):
-        # pylint: disable-msg=C0103
         nodes = [
                 "root1/child1/grandchild1",
                 "root1/child1/grandchild2",
