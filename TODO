@@ -3,7 +3,8 @@ A brief, but hopefully current, list of the features I want to add or fix.
 Use-cases still to cover
 =========================
 
-These items might not be problems yet. Need to check they're possible and fill in support.
+These items might not be problems yet. Need to check they're possible and fill
+in support.
 
 - non-ASCII tags and sorting order. We're obviously going to fail a strict
   version of the Turkish test, but the main pieces should Just Work. I want to
@@ -11,32 +12,8 @@ These items might not be problems yet. Need to check they're possible and fill i
 
 Problems
 =========
-- The bulk delete action in Django 1.1 should also delete children of any node
-  selected for delete (and include them in the confirmation list before doing
-  so).
-
 - In normal code, we have to handle the case of attempting to create and save a
   node that already exists.
-
-- When moving nodes, both in code and in the admin, need to handle merging
-  trees. For example, if the tree looks like this:
-
-        software/languages/python
-        software/languages/python/debugging
-        software/python/
-        software/python/debugging
-        software/python/design-patterns
-
-  and we move software/python to underneath software/languages, the new nodes
-  that have names similar to existing nodes should merge and the new tree
-  should look like:
-
-        software/languages/python/
-        software/languages/python/debugging
-        software/languages/python/design-patterns
-
-  The tricky part here is that this means some pk values will change, so
-  references to those objects have to be updated.
 
 - Think about any API requirements for supporting multiple databases (since I
   have a few methods that create objects).
@@ -44,11 +21,26 @@ Problems
 Tasks
 ======
 - Javascript tree widget for editing
-        - YUI-based
-        - dynamic loading of data for really large sets.
+    - YUI-based
+    - dynamic loading of data for really large sets.
 
 - Add a setup.py and possibly other build scripts that the Kool Kids use these
   days.
 
 - Main documentation updates (update to match current use of mptt from
   treebeard).
+
+- Use a less fugly documentation theme (requires spinx >= 0.6).
+    - maybe haiku or scrolls.
+
+- Multiple things need to be done in the tree view (on the changei-list page).
+  Not quite sure how to shoe-horn all these together yet:
+    - Expand a node (on-demand loading)
+    - Add a new root node
+    - Add a new child node (add new root and then move? Seems okay except
+      in mobile side)
+    - Edit details of node (going to the edit page for a particular node)
+    - Move node or entire subtree (drag-and-drop, hopefully. But how does
+      it work with really large trees?)
+    - Mobile device UX
+
