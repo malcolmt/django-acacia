@@ -90,7 +90,7 @@ class TopicTest(BaseTestSetup, test.TestCase):
         """
         # Use "c" as the test here, since there's more than one Topic instance
         # with a name of "c", but only one topic whose full name is "c".
-        self.failUnless(models.Topic.objects.filter(name="c").count() > 1)
+        self.assertTrue(models.Topic.objects.filter(name="c").count() > 1)
         node = models.Topic.objects.get_by_full_name("c")
         self.assertEquals(unicode(node), u"c")
 
@@ -161,10 +161,10 @@ class TopicTest(BaseTestSetup, test.TestCase):
         signals.pre_merge.connect(self.signal_catcher)
         node.merge_to(target)
         signals.pre_merge.disconnect(self.signal_catcher)
-        self.failUnlessEqual(len(self.signals), 1)
+        self.assertEqual(len(self.signals), 1)
         merge_pairs = self.signals[0][1]["merge_pairs"]
-        self.failUnlessEqual(len(merge_pairs), 1)
-        self.failUnlessEqual(merge_pairs[0], (old_id, surviving_node.id))
+        self.assertEqual(len(merge_pairs), 1)
+        self.assertEqual(merge_pairs[0], (old_id, surviving_node.id))
 
     def test_multiple_merge_nodes(self):
         """
@@ -179,11 +179,11 @@ class TopicTest(BaseTestSetup, test.TestCase):
         signals.pre_merge.connect(self.signal_catcher)
         node.merge_to(target)
         signals.pre_merge.disconnect(self.signal_catcher)
-        self.failUnlessEqual(len(self.signals), 1)
+        self.assertEqual(len(self.signals), 1)
         merge_pairs = self.signals[0][1]["merge_pairs"]
-        self.failUnlessEqual(len(merge_pairs), 2)
-        self.failUnlessEqual(merge_pairs[0], (old_ids[0], pivot.parent_id))
-        self.failUnlessEqual(merge_pairs[1], (old_ids[1], pivot.id))
+        self.assertEqual(len(merge_pairs), 2)
+        self.assertEqual(merge_pairs[0], (old_ids[0], pivot.parent_id))
+        self.assertEqual(merge_pairs[1], (old_ids[1], pivot.id))
         try:
             models.Topic.objects.get_by_full_name("a/x/y/c")
         except models.Topic.DoesNotExist:
@@ -200,18 +200,18 @@ class TopicTest(BaseTestSetup, test.TestCase):
         signals.pre_move.connect(self.signal_catcher)
         node.merge_to(target)
         signals.pre_merge.disconnect(self.signal_catcher)
-        self.failUnlessEqual(len(self.signals), 1)
+        self.assertEqual(len(self.signals), 1)
         signal_dict = self.signals[0][1]
-        self.failUnlessEqual(signal_dict["signal"], signals.pre_move)
-        self.failUnlessEqual(signal_dict["moving"][0][0].id, node.id)
-        self.failUnlessEqual(signal_dict["moving"][0][1].id, target.id)
+        self.assertEqual(signal_dict["signal"], signals.pre_move)
+        self.assertEqual(signal_dict["moving"][0][0].id, node.id)
+        self.assertEqual(signal_dict["moving"][0][1].id, target.id)
         try:
             models.Topic.objects.get_by_full_name("a/d")
         except models.Topic.DoesNotExist:
             self.fail("Node wasn't moved to correct location.")
-        self.failUnlessRaises(models.Topic.DoesNotExist,
+        self.assertRaises(models.Topic.DoesNotExist,
                 models.Topic.objects.get_by_full_name, "c/b/d")
-        self.failUnlessRaises(models.Topic.DoesNotExist,
+        self.assertRaises(models.Topic.DoesNotExist,
                 models.Topic.objects.get_by_full_name, "c/b/d/e")
 
     def test_merge_moves_all_subtrees(self):
@@ -225,18 +225,18 @@ class TopicTest(BaseTestSetup, test.TestCase):
         node = models.Topic.objects.get_by_full_name("x")
         y_child = models.Topic.objects.get_by_full_name("x/y")
         node.merge_to(parent)
-        self.failUnlessRaises(models.Topic.DoesNotExist,
+        self.assertRaises(models.Topic.DoesNotExist,
                 models.Topic.objects.get_by_full_name, "x")
         try:
             node = models.Topic.objects.get_by_full_name("a/x/c/z")
         except models.Topic.DoesNotExist:
             self.fail("Didn't move x/c/z node correctly.")
-        self.failUnlessEqual(node.id, z_child.id)
+        self.assertEqual(node.id, z_child.id)
         try:
             node = models.Topic.objects.get_by_full_name("a/x/y")
         except models.Topic.DoesNotExist:
             self.fail("Didn't move x/y node correctly.")
-        self.failUnlessEqual(node.id, y_child.id)
+        self.assertEqual(node.id, y_child.id)
 
     def test_move_is_not_merge(self):
         """
@@ -245,7 +245,7 @@ class TopicTest(BaseTestSetup, test.TestCase):
         """
         target = models.Topic.objects.get_by_full_name("a")
         node = models.Topic.objects.get_by_full_name("x")
-        self.failUnlessRaises(db.IntegrityError, node.move_to, target)
+        self.assertRaises(db.IntegrityError, node.move_to, target)
 
     def test_create_by_full_name1(self):
         """
@@ -253,9 +253,9 @@ class TopicTest(BaseTestSetup, test.TestCase):
         full name works.
         """
         _, created = models.Topic.objects.get_or_create_by_full_name("a/b")
-        self.failUnlessEqual(created, False)
+        self.assertEqual(created, False)
         _, created = models.Topic.objects.get_or_create_by_full_name("a/b/e")
-        self.failUnlessEqual(created, True)
+        self.assertEqual(created, True)
 
     def test_create_by_full_name2(self):
         """
@@ -263,9 +263,9 @@ class TopicTest(BaseTestSetup, test.TestCase):
         works.
         """
         _, created = models.Topic.objects.get_or_create_by_full_name("a/z/z")
-        self.failUnlessEqual(created, True)
+        self.assertEqual(created, True)
         node = models.Topic.objects.get_by_full_name("a/z/z")
-        self.failUnlessEqual(unicode(node), u"a/z/z")
+        self.assertEqual(unicode(node), u"a/z/z")
 
     def test_create_by_full_name3(self):
         """
@@ -274,7 +274,7 @@ class TopicTest(BaseTestSetup, test.TestCase):
         nothing new is created).
         """
         _, created = models.Topic.objects.get_or_create_by_full_name("c/b/d")
-        self.failUnlessEqual(created, False)
+        self.assertEqual(created, False)
 
     def test_create_by_full_name4(self):
         """
@@ -284,15 +284,15 @@ class TopicTest(BaseTestSetup, test.TestCase):
         """
         node, created = models.Topic.objects.get_or_create_by_full_name(
                 "a///b/e//")
-        self.failUnlessEqual(created, True)
-        self.failUnlessEqual(unicode(node), u"a/b/e")
+        self.assertEqual(created, True)
+        self.assertEqual(unicode(node), u"a/b/e")
 
     def test_create_by_full_name5(self):
         """
         Tests that creating a new node with a new root works as expected.
         """
         _, created = models.Topic.objects.get_or_create_by_full_name("j/k/l")
-        self.failUnlessEqual(created, True)
+        self.assertEqual(created, True)
 
     def test_create_duplicate_entry(self):
         """

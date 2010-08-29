@@ -21,31 +21,31 @@ def convert(template_string):
 
 class TreeTrunkErrorTests(test.TestCase):
     def test_invalid_app_name(self):
-        self.failUnlessRaises(template.TemplateSyntaxError, convert,
+        self.assertRaises(template.TemplateSyntaxError, convert,
                 "{% load acacia %}{% treetrunk bad.Topic %}")
 
     def test_invalid_model_name(self):
-        self.failUnlessRaises(template.TemplateSyntaxError, convert,
+        self.assertRaises(template.TemplateSyntaxError, convert,
                 "{% load acacia %}{% treetrunk acacia.BadName %}")
 
     def test_non_integer_level_value(self):
-        self.failUnlessRaises(template.TemplateSyntaxError, convert,
+        self.assertRaises(template.TemplateSyntaxError, convert,
                 "{% load acacia %}{% treetrunk acacia.Topic bad %}")
 
     def test_negative_level_value(self):
-        self.failUnlessRaises(template.TemplateSyntaxError, convert,
+        self.assertRaises(template.TemplateSyntaxError, convert,
                 "{% load acacia %}{% treetrunk acacia.Topic -1 %}")
 
     def test_zero_level_value(self):
-        self.failUnlessRaises(template.TemplateSyntaxError, convert,
+        self.assertRaises(template.TemplateSyntaxError, convert,
                 "{% load acacia %}{% treetrunk acacia.Topic 0 %}")
 
     def test_too_many_arguments(self):
-        self.failUnlessRaises(template.TemplateSyntaxError, convert,
+        self.assertRaises(template.TemplateSyntaxError, convert,
                 "{% load acacia %}{% treetrunk acacia.Topic 2 extra %}")
 
     def test_too_few_arguments(self):
-        self.failUnlessRaises(template.TemplateSyntaxError, convert,
+        self.assertRaises(template.TemplateSyntaxError, convert,
                 "{% load acacia %}{% treetrunk %}")
 
 
@@ -68,7 +68,7 @@ class TreeTrunkMiscTests(test.TestCase):
                     <ul><li>&lt;</li></ul>
                 </li></ul>
             </li></ul>""".replace("\n", "").replace(" ", "")
-        self.failUnlessEqual(output, expected, "\nGot     %s\n\nExpected %s" %
+        self.assertEqual(output, expected, "\nGot     %s\n\nExpected %s" %
                 (output, expected))
 
 
@@ -90,7 +90,7 @@ class TreeTrunkSingleRootTests(test.TestCase):
             <ul>
                 <li>root1</li>
             </ul>""".replace("\n", "").replace(" ", "")
-        self.failUnlessEqual(output, expected, "\nGot     %s\n\nExpected %s" %
+        self.assertEqual(output, expected, "\nGot     %s\n\nExpected %s" %
                 (output, expected))
 
     def test_two_levels(self):
@@ -104,7 +104,7 @@ class TreeTrunkSingleRootTests(test.TestCase):
                     <li>child3</li>
                 </ul></li>
             </ul>""".replace("\n", "").replace(" ", "")
-        self.failUnlessEqual(output, expected, "\nGot      %s\n\nExpected %s" %
+        self.assertEqual(output, expected, "\nGot      %s\n\nExpected %s" %
                 (output, expected))
 
     def test_three_levels(self):
@@ -123,7 +123,7 @@ class TreeTrunkSingleRootTests(test.TestCase):
                     <ul><li>grandchild1</li></ul></li>
                 </ul></li>
             </ul>""".replace("\n", "").replace(" ", "")
-        self.failUnlessEqual(output, expected, "\nGot      %s\n\nExpected %s" %
+        self.assertEqual(output, expected, "\nGot      %s\n\nExpected %s" %
                 (output, expected))
 
     def test_more_levels_than_nodes(self):
@@ -142,7 +142,7 @@ class TreeTrunkSingleRootTests(test.TestCase):
                     <ul><li>grandchild1</li></ul></li>
                 </ul></li>
             </ul>""".replace("\n", "").replace(" ", "")
-        self.failUnlessEqual(output, expected, "\nGot      %s\n\nExpected %s" %
+        self.assertEqual(output, expected, "\nGot      %s\n\nExpected %s" %
                 (output, expected))
 
     def test_default_level(self):
@@ -156,7 +156,7 @@ class TreeTrunkSingleRootTests(test.TestCase):
                     <li>child3</li>
                 </ul></li>
             </ul>""".replace("\n", "").replace(" ", "")
-        self.failUnlessEqual(output, expected, "\nGot      %s\n\nExpected %s" %
+        self.assertEqual(output, expected, "\nGot      %s\n\nExpected %s" %
                 (output, expected))
 
 
@@ -186,7 +186,7 @@ class TreeTrunkFullContentTests(test.TestCase):
                 <li>root2</li>
                 <li>root3</li>
             </ul>""".replace("\n", "").replace(" ", "")
-        self.failUnlessEqual(output, expected, "\nGot      %s\n\nExpected %s" %
+        self.assertEqual(output, expected, "\nGot      %s\n\nExpected %s" %
                 (output, expected))
 
     def test_three_levels(self):
@@ -215,6 +215,6 @@ class TreeTrunkFullContentTests(test.TestCase):
                 </ul></li>
                 <li>root3</li>
             </ul>""".replace("\n", "").replace(" ", "")
-        self.failUnlessEqual(output, expected, "\nGot      %s\n\nExpected %s" %
+        self.assertEqual(output, expected, "\nGot      %s\n\nExpected %s" %
                 (output, expected))
 
