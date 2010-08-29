@@ -197,9 +197,14 @@ class TopicTest(BaseTestSetup, test.TestCase):
         target = models.Topic.objects.get_by_full_name("a")
         node = models.Topic.objects.get_by_full_name("c/b/d")
         signals.pre_merge.connect(self.signal_catcher)
+        signals.pre_move.connect(self.signal_catcher)
         node.merge_to(target)
         signals.pre_merge.disconnect(self.signal_catcher)
-        self.failIf(self.signals, self.signals)
+        self.failUnlessEqual(len(self.signals), 1)
+        signal_dict = self.signals[0][1]
+        self.failUnlessEqual(signal_dict["signal"], signals.pre_move)
+        self.failUnlessEqual(signal_dict["moving"][0][0].id, node.id)
+        self.failUnlessEqual(signal_dict["moving"][0][1].id, target.id)
         try:
             models.Topic.objects.get_by_full_name("a/d")
         except models.Topic.DoesNotExist:
@@ -212,7 +217,8 @@ class TopicTest(BaseTestSetup, test.TestCase):
     def test_merge_moves_all_subtrees(self):
         """
         Tests that if a merge_to() call results in some merges at the top of
-        the subtree, *all* unmerged children are merged.
+        the subtree, *all* unmerged children are moved correctly (descendants
+        that aren't direct children of a merged node are the problematic cases).
         """
         z_child = models.Topic.objects.get_or_create_by_full_name("x/c/z")[0]
         parent = models.Topic.objects.get_by_full_name("a")

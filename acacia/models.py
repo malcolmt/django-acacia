@@ -53,15 +53,25 @@ class AbstractTopic(models.Model):
     def merge_to(self, parent):
         """
         A variant on mptt's move_to() method that merges any overlapping
-        portions of the move. If any nodes are to be merged, a pre_merge signal
-        is emitted before the move, with a list (old_id, new_id) pairs for
-        nodes that will be merged rather than moved. (For efficiency reasons,
-        no signal is emitted if no nodes are to be merged.)
+        portions of the move.
+
+        If any nodes are to be merged, a pre_merge signal is emitted before the
+        move, with a list (old_id, new_id) pairs for nodes that will be merged
+        rather than moved. (For efficiency reasons, no signal is emitted if no
+        nodes are to be merged.)
+
+        A pre_move signal is also emitted containing the root nodes of any
+        subtrees that are being moved, but not merged, and their target parent
+        node. This enables dependent apps to set up things like URL rewrites if
+        they have URLs depending on topic names. (The significance of
+        moved-but-not-merged is that these nodes won't have their pk values
+        changed in the process.)
         """
         manager = self.__class__.objects
         try:
             merge_node = manager.get(parent=parent, name=self.name)
         except self.DoesNotExist:
+            signals.pre_move.send(sender=self, moving=[(self, parent)])
             self.move_to(parent)
             return
         squash = [(self.id, merge_node.id)]
@@ -79,12 +89,17 @@ class AbstractTopic(models.Model):
                     squash.append((child.id, conflicts[child.name].id))
                     examine.append((child, conflicts[child.name]))
                 else:
-                    to_move.append((child, merge_node.id))
+                    to_move.append((child, merge_node))
         if squash:
             signals.pre_merge.send(sender=self, merge_pairs=squash)
-        for child, target_parent_id in to_move:
-            target_parent = manager.get(id=target_parent_id)
-            child.move_to(target_parent)
+
+        if to_move:
+            signals.pre_move.send(sender=self, moving=to_move)
+            for child, new_parent in to_move:
+                # Need to refresh the instance, as previous moves might have
+                # changed the "lft" and "rght" attributes.
+                new_parent = manager.get(id=new_parent.id)
+                child.move_to(new_parent)
         self.delete()
 
 class Topic(AbstractTopic):
